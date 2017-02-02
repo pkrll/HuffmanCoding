@@ -24,7 +24,7 @@ type BitCode = [Bool]
 --  * Decompress/Compress must be inverse functions
 --  * Take care of edge cases such as when compressing/decompressing "" (empty string) (What to do when empty string??)
 --  * Does the tree need to be balanced?
---
+--  * REMOVE INLINE COMMENTS
 
 {- characterCounts s
    PURPOSE: counts the number of occurrences of each character in s
@@ -34,7 +34,6 @@ type BitCode = [Bool]
    EXAMPLES: characterCounts "Foobar" == T [('r',1),('a',1),('b',1),('o', 2),('F',1)]
  -}
 characterCounts :: String -> Table Char Int
-
 characterCounts []     = Table.empty
 characterCounts (k:ks) =
   let
@@ -59,7 +58,55 @@ data HuffmanTree = Leaf Int Char
               huffmanTree (characterCounts "H") == Leaf 1 'H'
  -}
 huffmanTree :: Table Char Int -> HuffmanTree
-huffmanTree table = undefined
+huffmanTree table =
+  let
+    -- Iterate over table and create a priority queue from the elements
+    -- retrieve the least prioritized
+    queue = PriorityQueue.least (Table.iterate table addToQueue PriorityQueue.empty)
+  in
+    uncurry (buildHuffmanTree) queue where
+      {- buildHuffmanTree q
+         PRE:           True
+         POST:          ...
+         EXAMPLES:      buldHuffmanTree  ==
+         VARIANT:       None
+      -}
+      buildHuffmanTree :: (HuffmanTree, Int) -> PriorityQueue HuffmanTree -> HuffmanTree
+      buildHuffmanTree (t1, p1) q1
+        | PriorityQueue.isEmpty q1 = t1 -- if q1 is empty, only 1 tree remains
+        | otherwise =
+          let
+            -- Get the least prioritized in q1 and merge it with t1
+            -- This must be inserted again, and the process starts again.
+            ((t2, p2), q2) = PriorityQueue.least q1
+            t3             = mergeTree t1 t2
+            q3             = PriorityQueue.insert q2 (t3, p2 + p1)
+          in
+            uncurry (buildHuffmanTree) (PriorityQueue.least q3)
+      {- addToQueue q x
+         PRE:           True
+         POST:          Inserts x in queue q.
+         EXAMPLES:      populatePriorityQueue ==
+      -}
+      addToQueue :: PriorityQueue HuffmanTree -> (Char, Int) -> PriorityQueue HuffmanTree
+      addToQueue q (c, i) = PriorityQueue.insert q ((Leaf i c), i)
+
+{- mergeTree t1 t2
+   PRE:           True
+   POST:          t1 and t2 merged.
+   EXAMPLES:      mergeTree t1 t2 ==
+-}
+mergeTree :: HuffmanTree -> HuffmanTree -> HuffmanTree
+mergeTree t1 t2 = Branch (priority t1 + priority t2) t1 t2
+
+{- priority t
+   PRE:           True
+   POST:          Priority of t1
+   EXAMPLES:      priority (Leaf 1 'r') == 1
+-}
+priority :: HuffmanTree -> Int
+priority (Leaf p _)     = p
+priority (Branch p _ _) = p
 
 {- codeTable h
    PURPOSE:
@@ -67,9 +114,37 @@ huffmanTree table = undefined
    POST: a table that maps each character in h to its Huffman code
    EXAMPLES:
  -}
-
 codeTable :: HuffmanTree -> Table Char BitCode
 codeTable h = undefined
+
+{- mapCharacters h b
+   PRE:           None
+   POST:          each character in h mapped to its Huffman code
+   EXAMPLES:      mapCharacters ==
+   VARIANT:       |
+-}
+-- Just traverses the whole tree and maps where each character is
+-- in the tree. A left turn is recorded as False (zero bit) and a
+-- right turn is True (one bit)
+-- MAYBE THIS CAN BE ADDED TO A TABLE DIRECTLY INSTEAD OF FIRST
+-- CREATING A LIST AND THEN ADDING THE ELEMENTS OF THE LIST
+-- TO A TABLE??
+mapCharacters :: HuffmanTree -> BitCode -> [(Char, BitCode)]
+mapCharacters (Leaf _ k) []    = [(k, [False])]
+mapCharacters (Leaf _ k) b     = [(k, b)]
+mapCharacters (Branch _ l r) b =
+  mapCharacters l (addBit 0 b) ++ mapCharacters r (addBit 1 b)
+    where
+    {- addBit n l
+       PRE:           n = {1, 0}
+       POST:          l with False added to it, if n == 0,
+                      otherwise l with True added to it.
+       EXAMPLES:      addBit 1 []     == [True]
+                      addBit 0 [True] == [True, False]
+    -}
+    addBit :: Int -> [Bool] -> [Bool]
+    addBit 0 b = b ++ [False]
+    addBit 1 b = b ++ [True]
 
 {- compress s
    PURPOSE:
@@ -78,7 +153,8 @@ codeTable h = undefined
    EXAMPLES:
  -}
 compress :: String -> (HuffmanTree, BitCode)
-compress s = undefined
+compress [] = undefined -- what exactly is supposed to happen when s is empty?
+compress s  = undefined
 
 {- decompress h bits
    PURPOSE:   decodes the message in bits from h

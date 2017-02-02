@@ -56,14 +56,14 @@ empty = PriorityQueue []
 isEmpty (PriorityQueue q) = null q
 
 -- It will return an ordered PriorityQueue
--- VARIANT: |a|
+-- VARIANT: |a|?
 insert (PriorityQueue q) p = PriorityQueue (ins q p)
   where
     {- ins a b@(c, d)
-       PRE:           True
-       POST:          a with element b inserted, in ascending order by d.
-       EXAMPLES:      ins [] ('A', 2) == [('a', 2)] (Do we need example?)
-       VARIANT:       |a|
+       PRE:       True
+       POST:      a with element b inserted, in ascending order by d.
+       EXAMPLES:  ins [] ('A', 2) == [('a', 2)] (Do we need example?)
+       VARIANT:   |a|?
     -}
     ins :: [(a, Int)] -> (a, Int) -> [(a, Int)]
     ins []    p = [p]
