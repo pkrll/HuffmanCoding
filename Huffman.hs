@@ -21,8 +21,9 @@ type BitCode = [Bool]
 --------------------------------------------------------------------------------
 
 -- TODO:
---  * Fix compress/decompress - not inverses.
+--  * Decompress/Compress must be inverse functions
 --  * Take care of edge cases such as when compressing/decompressing "" (empty string) (What to do when empty string??)
+--  * Does the tree need to be balanced?
 --
 
 {- characterCounts s
@@ -33,18 +34,6 @@ type BitCode = [Bool]
    EXAMPLES: characterCounts "Foobar" == T [('r',1),('a',1),('b',1),('o', 2),('F',1)]
  -}
 characterCounts :: String -> Table Char Int
-
--- Which is better?
--- characterCounts' s = foldl countCharacter Table.empty s
---   where
---     countCharacter :: Table Char Int -> Char -> Table Char Int
---     countCharacter table char =
---       let
---         value = case Table.lookup table char of
---           Just x  -> x + 1
---           Nothing -> 1
---       in
---         Table.insert table char value
 
 characterCounts []     = Table.empty
 characterCounts (k:ks) =
@@ -70,61 +59,7 @@ data HuffmanTree = Leaf Int Char
               huffmanTree (characterCounts "H") == Leaf 1 'H'
  -}
 huffmanTree :: Table Char Int -> HuffmanTree
-huffmanTree table =
-  let
-    -- Iterate over table and create a priority queue from the elements
-    -- retrieve the least prioritized
-    q = PriorityQueue.least (Table.iterate table populatePriorityQueue PriorityQueue.empty)
-  in
-    buildHuffmanTree q
-      where
-        {-
-          buildHuffmanTree' ((t, i), q)
-          PURPOSE:  Creates a Huffman tree from t and elements in q.
-          PRE:      i > 0
-          POST:     A Huffman Tree based on t and the elements in q.
-          EXAMPLES: ...?
-        -}
-        buildHuffmanTree :: ((HuffmanTree, Int), PriorityQueue HuffmanTree) -> HuffmanTree
-        buildHuffmanTree ((t1, p1), q1)
-          | PriorityQueue.isEmpty q1 = t1 -- If the queue is empty, then only one tree remains
-          | otherwise =
-            let
-              -- Get the least prioritized tree
-              -- merge it with t1, insert it back in and call buildHuffmanTree again
-              ((t2, p2), q2) = PriorityQueue.least q1
-              t3             = ((mergeTree t1 t2), p1 + p2)
-            in
-              buildHuffmanTree (PriorityQueue.least (PriorityQueue.insert q2 t3))
-        {- populatePriorityQueue q a@(c, p)
-           PURPOSE:   populates a priority queue whose elements are Huffman trees based on a
-           PRE:       p > 0
-           POST:      The queue q with element (Leaf i p) inserted at priority p.
-           EXAMPLES:  ...
-        -}
-        populatePriorityQueue :: PriorityQueue HuffmanTree -> (Char, Int) -> PriorityQueue HuffmanTree
-        populatePriorityQueue q (c, i) =
-          let
-            leaf = Leaf i c
-          in
-            PriorityQueue.insert q (leaf, i)
-
-{- mergeTree t1 t2
-   PRE:           True
-   POST:          t1 and t2 merged.
-   EXAMPLES:      mergeTree (Leaf 1 'a') (Leaf 2 'b') == Branch 3 (Leaf 1 'a') (Leaf 2 'b')
--}
-mergeTree :: HuffmanTree -> HuffmanTree -> HuffmanTree
-mergeTree t1 t2 = Branch (priority t1 + priority t2) t1 t2
-
-{- priority a
-   PRE:           True
-   POST:          The character count (priority) of a.
-   EXAMPLES:      priority (Leaf (1, 'a')) == 1
--}
-priority :: HuffmanTree -> Int
-priority (Leaf a _)     = a
-priority (Branch a _ _) = a
+huffmanTree table = undefined
 
 {- codeTable h
    PURPOSE:
@@ -132,46 +67,9 @@ priority (Branch a _ _) = a
    POST: a table that maps each character in h to its Huffman code
    EXAMPLES:
  -}
--- TODO: There is probably a better way to do this...
+
 codeTable :: HuffmanTree -> Table Char BitCode
-codeTable h = uncurriedTableInsertion Table.empty (mapCharacters h [])
-  where
-    {- uncurriedTableInsertion f t p@(k, v)
-       PRE:           True?
-       POST:          table t populated with elements in p
-       EXAMPLES:      mapTable ==
-       VARIANT:       |p|
-    -}
-    uncurriedTableInsertion :: Eq k => Table k v -> [(k, v)] -> Table k v
-    -- The mapCharacters returns a list of tuples, uncurrying Table.insert
-    -- allows for insertion of tuples (instead of having to use two arguments)
-    uncurriedTableInsertion t [a]   = uncurry (Table.insert t) a
-    uncurriedTableInsertion t (a:b) = uncurry (Table.insert (uncurriedTableInsertion t b)) a
-    {- mapCharacters h b
-       PRE:           None
-       POST:          each character in h mapped to its Huffman code
-       EXAMPLES:      mapCharacters ==
-       VARIANT:       |
-    -}
-    -- Just traverses the whole tree and maps where each character is
-    -- in the tree. A left turn is recorded as False (zero bit) and a
-    -- right turn is True (one bit)
-mapCharacters :: HuffmanTree -> BitCode -> [(Char, BitCode)]
-mapCharacters (Leaf _ k) []    = [(k, [False])]
-mapCharacters (Leaf _ k) b     = [(k, b)]
-mapCharacters (Branch _ l r) b =
-  mapCharacters l (addBit 0 b) ++ mapCharacters r (addBit 1 b)
-    where
-    {- addBit n l
-       PRE:           n = {1, 0}
-       POST:          l with False added to it, if n == 0,
-                      otherwise l with True added to it.
-       EXAMPLES:      addBit 1 []     == [True]
-                      addBit 0 [True] == [True, False]
-    -}
-    addBit :: Int -> [Bool] -> [Bool]
-    addBit 0 b = b ++ [False]
-    addBit 1 b = b ++ [True]
+codeTable h = undefined
 
 {- compress s
    PURPOSE:
@@ -180,28 +78,7 @@ mapCharacters (Branch _ l r) b =
    EXAMPLES:
  -}
 compress :: String -> (HuffmanTree, BitCode)
-compress s =
-  let
-    tree = huffmanTree (characterCounts s)
-    code = lookupCharacters s (codeTable tree)
-      where
-        {- lookupCharacters s t
-           PRE:           ???
-           POST:          encoding of s based on mapped characters in t
-           EXAMPLES:
-           VARIANT:       |s|
-        -}
-        lookupCharacters :: String -> Table Char BitCode -> BitCode
-        lookupCharacters []     table = []
-        lookupCharacters (k:ks) table =
-          let
-            value = case Table.lookup table k of
-                      Just x  -> x
-                      Nothing -> []
-          in
-            value ++ (lookupCharacters ks table)
-  in
-    (tree, code)
+compress s = undefined
 
 {- decompress h bits
    PURPOSE:   decodes the message in bits from h
@@ -210,26 +87,7 @@ compress s =
    EXAMPLES:  uncurry decompress (compress "Hello World") == "Hello World"
  -}
 decompress :: HuffmanTree -> BitCode -> String
-decompress h@(Leaf _ k) []     = []
-decompress h@(Leaf _ k) (b:bs) = k : (decompress h bs)
-decompress h bits = traverseTree h bits ""
-  where
-    {- traverseTree h b str
-       PRE:           b is a concatenation of valid Huffman code words for h
-       POST:          str consisting of characters from h mapped out in b
-       VARIANT:       |b|
--}
-  traverseTree :: HuffmanTree -> BitCode -> String -> String
-  traverseTree (Leaf _ k)     []         str = str ++ [k]
-  traverseTree (Leaf _ k)     bits       str = traverseTree h bits (str ++ [k])
-  traverseTree (Branch _ l r) (bit:bits) str | bit == False = traverseTree l bits str
-                                             | otherwise    = traverseTree r bits str
-
-testDecompress a = let (h, bits) = compress a in decompress h bits
-
-singleLeaf :: HuffmanTree -> Bool
-singleLeaf (Leaf _ _) = True
-singleLeaf _          = False
+decompress h b = undefined
 
 --------------------------------------------------------------------------------
 -- Test Cases
