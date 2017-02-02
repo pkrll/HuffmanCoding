@@ -21,17 +21,20 @@ type BitCode = [Bool]
 --------------------------------------------------------------------------------
 
 -- TODO:
---  * Decompress/Compress must be inverse functions
+--  √ Decompress/Compress must be inverse functions
 --  * Take care of edge cases such as when compressing/decompressing "" (empty string) (What to do when empty string??)
---  * Does the tree need to be balanced?
+--  √ Does the tree need to be balanced? (Nope)
 --  * REMOVE INLINE COMMENTS
+--  * Think of more edge cases / grading cases...
+--  * Handle empty Tables in huffmanTree function
+--  * Add examples for inline functions?
 
 {- characterCounts s
-   PURPOSE: counts the number of occurrences of each character in s
-   PRE:  True
-   POST: a table that maps each character that occurs in s to the number of
-         times the character occurs in s
-   EXAMPLES: characterCounts "Foobar" == T [('r',1),('a',1),('b',1),('o', 2),('F',1)]
+   PURPOSE:   Counts the number of occurrences of each character in s
+   PRE:       True
+   POST:      A table that maps each character that occurs in s to the number of
+              times the character occurs in s
+   EXAMPLES:  characterCounts "Foobar" == T [('r',1),('a',1),('b',1),('o', 2),('F',1)]
  -}
 characterCounts :: String -> Table Char Int
 characterCounts []     = Table.empty
@@ -44,10 +47,11 @@ characterCounts (k:ks) =
   in
     Table.insert table k value
 
-{- REPRESENTATION CONVENTION: In the Huffman Tree Leaf c i, c represents the number of occurrences of the character represented by c. In Branch i r l, i is the combined number of character in the sub-trees r and l.
+{- REPRESENTATION CONVENTION: In the Huffman Tree Leaf c i, c represents the number of occurrences of the character represented by c. In Branch i r l, i is the combined number of character in the sub-trees r and l. Void is an empty sub-tree.
    REPRESENTATION INVARIANT:  Sub-trees with higher character counts do not occur at a lower level of the tree than sub-tress with lower character counts.
 -}
-data HuffmanTree = Leaf Int Char
+data HuffmanTree = Void -- neccessary for fixing problem with empty strings (better way?)
+                 | Leaf Int Char
                  | Branch Int HuffmanTree HuffmanTree deriving (Show)
 
 {- huffmanTree t
@@ -57,6 +61,7 @@ data HuffmanTree = Leaf Int Char
    EXAMPLES:  huffmanTree (characterCounts "Foobar") == Branch 6 (Branch 2 (Leaf 1 'b') (Leaf 1 'F')) (Branch 4 (Leaf 2 'o') (Branch 2 (Leaf 1 'r') (Leaf 1 'a')))
               huffmanTree (characterCounts "H") == Leaf 1 'H'
  -}
+ -- TODO: Does not handle an empty Table Char Int (because of PriorityQueue.least)
 huffmanTree :: Table Char Int -> HuffmanTree
 huffmanTree table =
   let
@@ -69,7 +74,7 @@ huffmanTree table =
          PRE:           True
          POST:          ...
          EXAMPLES:      buldHuffmanTree  ==
-         VARIANT:       None
+         VARIANT:       |q| ??
       -}
       buildHuffmanTree :: (HuffmanTree, Int) -> PriorityQueue HuffmanTree -> HuffmanTree
       buildHuffmanTree (t1, p1) q1
@@ -94,14 +99,14 @@ huffmanTree table =
 {- mergeTree t1 t2
    PRE:           True
    POST:          t1 and t2 merged.
-   EXAMPLES:      mergeTree t1 t2 ==
+   EXAMPLES:      mergeTree (Leaf 1 'd') (Leaf 2 'c') == Branch 3 (Leaf 1 'd') (Leaf 2 'c')
 -}
 mergeTree :: HuffmanTree -> HuffmanTree -> HuffmanTree
 mergeTree t1 t2 = Branch (priority t1 + priority t2) t1 t2
 
 {- priority t
    PRE:           True
-   POST:          Priority of t1
+   POST:          Priority of t
    EXAMPLES:      priority (Leaf 1 'r') == 1
 -}
 priority :: HuffmanTree -> Int
@@ -115,55 +120,87 @@ priority (Branch p _ _) = p
    EXAMPLES:
  -}
 codeTable :: HuffmanTree -> Table Char BitCode
-codeTable h = undefined
-
-{- mapCharacters h b
-   PRE:           None
-   POST:          each character in h mapped to its Huffman code
-   EXAMPLES:      mapCharacters ==
-   VARIANT:       |
--}
--- Just traverses the whole tree and maps where each character is
--- in the tree. A left turn is recorded as False (zero bit) and a
--- right turn is True (one bit)
--- MAYBE THIS CAN BE ADDED TO A TABLE DIRECTLY INSTEAD OF FIRST
--- CREATING A LIST AND THEN ADDING THE ELEMENTS OF THE LIST
--- TO A TABLE??
-mapCharacters :: HuffmanTree -> BitCode -> [(Char, BitCode)]
-mapCharacters (Leaf _ k) []    = [(k, [False])]
-mapCharacters (Leaf _ k) b     = [(k, b)]
-mapCharacters (Branch _ l r) b =
-  mapCharacters l (addBit 0 b) ++ mapCharacters r (addBit 1 b)
-    where
-    {- addBit n l
-       PRE:           n = {1, 0}
-       POST:          l with False added to it, if n == 0,
-                      otherwise l with True added to it.
-       EXAMPLES:      addBit 1 []     == [True]
-                      addBit 0 [True] == [True, False]
-    -}
-    addBit :: Int -> [Bool] -> [Bool]
-    addBit 0 b = b ++ [False]
-    addBit 1 b = b ++ [True]
+codeTable h = mapCharacters h [] Table.empty
+  where
+  {- mapCharacters h b t
+     PRE:           b and t are empty
+     POST:          t with each character in h mapped to its Huffman code accumulated in b
+     EXAMPLES:      mapCharacters == ??? SHOULD WE HAVE?
+     VARIANT:       |h| <-- IS THIS RIGHT?
+  -}
+  -- Just traverses the whole tree and maps where each character is
+  -- in the tree. A left turn is recorded as False (zero bit) and a
+  -- right turn is True (one bit)
+  mapCharacters :: HuffmanTree -> BitCode -> Table Char BitCode -> Table Char BitCode
+  mapCharacters (Leaf _ k) [] t    = Table.insert t k [False] -- Fix for single characters
+  mapCharacters (Leaf _ k) b t     = Table.insert t k b
+  mapCharacters (Branch _ l r) b t =
+    mapCharacters r (addBit 1 b) (mapCharacters l (addBit 0 b) t)
+      where
+      {- addBit n l
+         PRE:           n = {1, 0}
+         POST:          l with False added to it if n == 0,
+                        otherwise l with True added to it.
+         EXAMPLES:      addBit 1 []     == [True]
+                        addBit 0 [True] == [True, False]
+      -}
+      addBit :: Int -> [Bool] -> [Bool]
+      addBit 0 b = b ++ [False] -- A better way to add to the end of a list?
+      addBit 1 b = b ++ [True]
 
 {- compress s
-   PURPOSE:
-   PRE:  True
-   POST: (a Huffman tree based on s, the Huffman coding of s under this tree)
-   EXAMPLES:
+   PURPOSE:   encodes the message in s
+   PRE:       True
+   POST:      A Huffman tree based on s, the Huffman coding of s under this tree.
+   EXAMPLES:  compress ==
  -}
 compress :: String -> (HuffmanTree, BitCode)
-compress [] = undefined -- what exactly is supposed to happen when s is empty?
-compress s  = undefined
+compress [] = (Void, []) -- what exactly is supposed to happen when s is empty?
+compress s  =
+  let
+    tree = huffmanTree (characterCounts s)
+    code = lookupCharacters s (codeTable tree)
+      where
+        {- lookupCharacters str t
+           PRE:           True
+           POST:          encoding of s based on mapped characters in t
+           EXAMPLES:      lookupCharacters  ==
+           VARIANT:       ...
+        -}
+        lookupCharacters :: String -> Table Char BitCode -> BitCode
+        lookupCharacters [] t      = []
+        lookupCharacters (c:str) t =
+          let
+            value = case Table.lookup t c of
+                      Just x  -> x
+                      Nothing -> []
+          in
+            value ++ (lookupCharacters str t)
+  in
+    (tree, code)
 
 {- decompress h bits
    PURPOSE:   decodes the message in bits from h
-   PRE:       bits is a concatenation of valid Huffman code words for h
+   PRE:       bits is valid Huffman code for h???
    POST:      the decoding of bits under h
    EXAMPLES:  uncurry decompress (compress "Hello World") == "Hello World"
  -}
 decompress :: HuffmanTree -> BitCode -> String
-decompress h b = undefined
+decompress Void []             = "" -- fixes empty string problem
+decompress h@(Leaf _ k) []     = [] -- fixes repeated characters, like "xxx"
+decompress h@(Leaf _ k) (b:bs) = k : (decompress h bs)
+decompress h bits = traverseTree h bits ""
+  where
+    {- traverseTree h b str
+       PRE:           b is valid Huffman code for h???
+       POST:          str consisting of characters from h mapped out in b
+       VARIANT:       |b|
+    -}
+    traverseTree :: HuffmanTree -> BitCode -> String -> String
+    traverseTree (Leaf _ k)     []         str = str ++ [k]
+    traverseTree (Leaf _ k)     bits       str = traverseTree h bits (str ++ [k])
+    traverseTree (Branch _ l r) (bit:bits) str | bit == False = traverseTree l bits str
+                                               | otherwise    = traverseTree r bits str
 
 --------------------------------------------------------------------------------
 -- Test Cases
@@ -206,3 +243,5 @@ test6 =
 
 -- for running all the tests
 runtests = runTestTT $ TestList [test1, test2, test3, test4, test5, test6]
+
+testDecompress a = let (h, bits) = compress a in decompress h bits
