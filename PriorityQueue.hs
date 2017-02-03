@@ -1,3 +1,13 @@
+-------------------------------------------------------
+--  Program Design & Data Structures (Course 1DL201)
+--  Spring 2017 Home Assignment 3: Huffman Coding
+--
+--  Authors:
+--    Ardalan Samimi Sadeh (DV1 C)
+--    Gustav Lindqvist     (IT1 _)
+--  Date:
+--    February 3, 2017
+-------------------------------------------------------
 -- DO NOT MODIFY THE FOLLOWING LINES
 
 module PriorityQueue(PriorityQueue, empty, isEmpty, insert, least) where
@@ -38,16 +48,12 @@ least :: PriorityQueue a -> ((a, Int), PriorityQueue a)
 
 -- END OF DO NOT MODIFY ZONE
 
-
 --------------------------------------------------------------------------------
 -- implementation
 --------------------------------------------------------------------------------
 
--- the type of priority queues with elements of type a (and priorities
--- of type Int)
-
 {- REPRESENTATION CONVENTION: A priority queue with elements of type a and priorities of type Int.
-   REPRESENTATION INVARIANT:  True
+   REPRESENTATION INVARIANT:  True.
 -}
 data PriorityQueue a = PriorityQueue [(a, Int)] deriving (Show)
 
@@ -62,7 +68,7 @@ insert (PriorityQueue q) p = PriorityQueue (ins q p)
        PRE:       True
        POST:      a with element b inserted, in ascending order by d.
        EXAMPLES:  ins [] ('A', 2) == [('a', 2)]
-       VARIANT:   |a|?
+       VARIANT:   |a|
     -}
     ins :: [(a, Int)] -> (a, Int) -> [(a, Int)]
     ins []    p = [p]
