@@ -92,7 +92,17 @@ decompress h b = fun h b ""
 		fun (Leaf i c) b s = fun h b (s ++ [c]) --Hela trädet
 		fun (Branch i l r) (b':b) s | b' == True = fun r b s
 					  | otherwise = fun l b s
-                       
+
+
+{-
+							12
+					5				7
+				2		3 l		3		4
+			1 " "	   1 e			     1 h  2 o         2		2
+									   1 ! 1 d    1 r 1 w
+-}
+
+
 a = (Branch 12 (Branch 5 (Branch 2 (Leaf 1 ' ') (Leaf 1 'e')) (Leaf 3 'l')) (Branch 7 (Branch 3 (Leaf 1 'H') (Leaf 2 'o')) (Branch 4 (Branch 2 (Leaf 1 '!') (Leaf 1 'd')) (Branch 2 (Leaf 1 'r') (Leaf 1 'W')))))
 b = [True,False,False,False,False,True,False,True,False,True,True,False,True,False,False,False,True,True,True,True,True,False,True,True,True,True,False,False,True,True,True,False,True,True,True,False,False]
 
