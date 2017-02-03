@@ -28,6 +28,7 @@ type BitCode = [Bool]
 --  * Think of more edge cases / grading cases...
 --  * Handle empty Tables in huffmanTree function
 --  * Add examples for inline functions?
+--  * Handle special cases? For example - is decompressed to \8212 (Though '—' == '\8212')
 
 {- characterCounts s
    PURPOSE:   Counts the number of occurrences of each character in s
@@ -62,11 +63,13 @@ data HuffmanTree = Void -- neccessary for fixing problem with empty strings (bet
               huffmanTree (characterCounts "H") == Leaf 1 'H'
  -}
  -- TODO: Does not handle an empty Table Char Int (because of PriorityQueue.least)
+
 huffmanTree :: Table Char Int -> HuffmanTree
 huffmanTree table =
   let
     -- Iterate over table and create a priority queue from the elements
     -- retrieve the least prioritized
+    -- Empty table crashes the function
     queue = PriorityQueue.least (Table.iterate table addToQueue PriorityQueue.empty)
   in
     uncurry (buildHuffmanTree) queue where
@@ -187,7 +190,7 @@ compress s  =
  -}
 decompress :: HuffmanTree -> BitCode -> String
 decompress Void []             = "" -- fixes empty string problem
-decompress h@(Leaf _ k) []     = [] -- fixes repeated characters, like "xxx"
+-- decompress h@(Leaf _ k) []     = [] -- fixes repeated characters, like "xxx"
 decompress h@(Leaf _ k) (b:bs) = k : (decompress h bs)
 decompress h bits = traverseTree h bits ""
   where
