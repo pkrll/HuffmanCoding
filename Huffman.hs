@@ -14,8 +14,8 @@ module Huffman(HuffmanTree, characterCounts, huffmanTree, codeTable, compress, d
 
 import Table
 import PriorityQueue
-
-import Debug.Trace
+import Data.Maybe   -- Added by student
+import Debug.Trace  -- Added by student
 import Test.HUnit  -- if this causes an error, type 'cabal install HUnit' at the command line
 
 {- REPRESENTATION CONVENTION:
@@ -46,9 +46,7 @@ characterCounts []     = Table.empty
 characterCounts (k:ks) =
   let
     table = characterCounts ks
-    value = case Table.lookup table k of
-              Just x  -> x + 1
-              Nothing -> 1
+    value = fromMaybe 0 (Table.lookup table k) + 1
   in
     Table.insert table k value
 
@@ -180,13 +178,7 @@ compress s  =
         -}
         lookupCharacters :: String -> Table Char BitCode -> BitCode
         lookupCharacters []      t = []
-        lookupCharacters (c:str) t =
-          let
-            value = case Table.lookup t c of
-                      Just x  -> x
-                      Nothing -> []
-          in
-            value ++ (lookupCharacters str t)
+        lookupCharacters (c:str) t = (fromMaybe [] (Table.lookup t c)) ++ (lookupCharacters str t)
   in
     (tree, code)
 
@@ -197,8 +189,8 @@ compress s  =
    EXAMPLES:  uncurry decompress (compress "Hello World") == "Hello World"
  -}
 decompress :: HuffmanTree -> BitCode -> String
-decompress Void _              = "" -- fixes empty string issue
-decompress _ []                = [] -- fixes issue with repeated chars, for example "xxx" => "xxxx"
+decompress Void _              = "" -- fixes issue with empty strings
+decompress _ []                = [] -- fixes an issue with repeated chars
 decompress h@(Leaf _ k) (b:bs) = k : (decompress h bs)
 decompress huffmanTree   bits  = traverseTree huffmanTree bits ""
   where
@@ -210,8 +202,8 @@ decompress huffmanTree   bits  = traverseTree huffmanTree bits ""
     traverseTree :: HuffmanTree -> BitCode -> String -> String
     traverseTree (Leaf _ k)     []         str = str ++ [k]
     traverseTree (Leaf _ k)     bits       str = traverseTree huffmanTree bits (str ++ [k])
-    traverseTree (Branch _ l r) (bit:bits) str | bit == False = traverseTree l bits str
-                                               | otherwise    = traverseTree r bits str
+    traverseTree (Branch _ l r) (bit:bits) str | bit       = traverseTree r bits str
+                                               | otherwise = traverseTree l bits str
 
 --------------------------------------------------------------------------------
 -- Test Cases
