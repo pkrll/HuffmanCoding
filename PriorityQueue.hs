@@ -46,8 +46,8 @@ least :: PriorityQueue a -> ((a, Int), PriorityQueue a)
 -- the type of priority queues with elements of type a (and priorities
 -- of type Int)
 
-{- REPRESENTATION CONVENTION: ... description of how the datatype represents data ...
-   REPRESENTATION INVARIANT:  None
+{- REPRESENTATION CONVENTION: A priority queue with elements of type a and priorities of type Int.
+   REPRESENTATION INVARIANT:  True
 -}
 data PriorityQueue a = PriorityQueue [(a, Int)] deriving (Show)
 
@@ -56,13 +56,12 @@ empty = PriorityQueue []
 isEmpty (PriorityQueue q) = null q
 
 -- It will return an ordered PriorityQueue
--- VARIANT: |a|?
 insert (PriorityQueue q) p = PriorityQueue (ins q p)
   where
     {- ins a b@(c, d)
        PRE:       True
        POST:      a with element b inserted, in ascending order by d.
-       EXAMPLES:  ins [] ('A', 2) == [('a', 2)] (Do we need example?)
+       EXAMPLES:  ins [] ('A', 2) == [('a', 2)]
        VARIANT:   |a|?
     -}
     ins :: [(a, Int)] -> (a, Int) -> [(a, Int)]
