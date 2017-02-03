@@ -27,11 +27,20 @@ type BitCode = [Bool]
    EXAMPLES:
  -}
 characterCounts :: String -> Table Char Int
-characterCounts s = undefined
+characterCounts [] = Table.empty
+characterCounts (s':s) = let
+                           t = characterCounts s
+                           v = case Table.lookup t s' of
+                               Just x -> x+1
+                               Nothing -> 1
+                         in
+                           Table.insert t s' v
 
 
 -- modify and add comments as needed
-data HuffmanTree = HuffmanTree ()
+data HuffmanTree = Void
+                 | Leaf Int Char
+                 | Branch Int HuffmanTree HuffmanTree deriving Show
 
 
 {- huffmanTree t
@@ -51,7 +60,9 @@ huffmanTree t = undefined
    EXAMPLES:
  -}
 codeTable :: HuffmanTree -> Table Char BitCode
-codeTable h = undefined
+codeTable Void         = Table.empty
+codeTable (Leaf c i)   = undefined
+codetable (Branch l i r) = undefined
 
 
 {- compress s
@@ -71,8 +82,19 @@ compress s = undefined
    EXAMPLES:
  -}
 decompress :: HuffmanTree -> BitCode -> String
-decompress h bits = undefined
-
+decompress Void _ = []
+decompress _   [] = []
+decompress h@(Leaf i c) (b':b) = c:(decompress h b) --Ursprungs h
+decompress h b = fun h b ""
+	where
+		fun :: HuffmanTree -> BitCode -> String -> String
+		fun (Leaf i c) [] s = s ++ [c]
+		fun (Leaf i c) b s = fun h b (s ++ [c]) --Hela trädet
+		fun (Branch i l r) (b':b) s | b' == True = fun r b s
+					  | otherwise = fun l b s
+                       
+a = (Branch 12 (Branch 5 (Branch 2 (Leaf 1 ' ') (Leaf 1 'e')) (Leaf 3 'l')) (Branch 7 (Branch 3 (Leaf 1 'H') (Leaf 2 'o')) (Branch 4 (Branch 2 (Leaf 1 '!') (Leaf 1 'd')) (Branch 2 (Leaf 1 'r') (Leaf 1 'W')))))
+b = [True,False,False,False,False,True,False,True,False,True,True,False,True,False,False,False,True,True,True,True,True,False,True,True,True,True,False,False,True,True,True,False,True,True,True,False,False]
 
 --------------------------------------------------------------------------------
 -- Test Cases

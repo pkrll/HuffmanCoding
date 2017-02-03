@@ -46,12 +46,31 @@ least :: PriorityQueue a -> ((a, Int), PriorityQueue a)
 -- the type of priority queues with elements of type a (and priorities
 -- of type Int)
 -- modify and add comments as needed
-type PriorityQueue a = ()
 
-empty = undefined
 
-isEmpty q = undefined
+{- REPRESENTATION CONVENTION: A priority queue with elements of type a and priorities of type Int.
+   REPRESENTATION INVARIANT: True
+ -}
+data PriorityQueue a = PriorityQueue [(a,Int)] deriving Show
 
-insert q (x,p) = undefined
+empty = PriorityQueue []
 
-least q = undefined
+isEmpty (PriorityQueue []) = True
+isEmpty _ = False
+
+--Creates an ordered priority queue
+--Variant: length a
+insert (PriorityQueue a) b = PriorityQueue (insert' a b)
+                             where
+                             insert' :: [(a,Int)] -> (a, Int) -> [(a,Int)]
+                             insert' [] b = [b]
+                             insert' (q':q) (x,p) | p <= snd q' = (x,p):q':q
+                                                  | otherwise = q':(insert' q (x,p))
+
+least (PriorityQueue (a:q)) = (a, PriorityQueue q)
+
+
+
+
+
+
