@@ -29,10 +29,12 @@ type BitCode = [Bool]
 -- END OF DO NOT MODIFY ZONE
 
 --------------------------------------------------------------------------------
+{-# ANN module "HLint: ignore Use mappend" #-}
 
 -- TODO:
 --  * Think of more edge cases / grading cases...
---  * Handle empty Tables in huffmanTree function
+--  * What should a code table with repeated characters look like?
+--  * How should a priority queue handle duplicates?
 
 {- characterCounts s
    PURPOSE:   Counts the number of occurrences of each character in s
@@ -50,8 +52,10 @@ characterCounts (k:ks) =
   in
     Table.insert table k value
 
-{- REPRESENTATION CONVENTION: In the Huffman Tree Leaf c i, c represents the number of occurrences of the character represented by c. In Branch i r l, i is the combined number of character in the sub-trees r and l. Void is an empty sub-tree.
-   REPRESENTATION INVARIANT:  Sub-trees with higher character counts do not occur at a lower level of the tree than sub-tress with lower character counts. The number of occurrences of each character must be above zero.
+{- REPRESENTATION CONVENTION:
+     In the Huffman Tree Leaf c i, c represents the number of occurrences of the character represented by c. In Branch i r l, i is the combined number of character in the sub-trees r and l. Void is an empty sub-tree.
+   REPRESENTATION INVARIANT:
+     Sub-trees with higher character counts do not occur at a lower level of the tree than sub-tress with lower character counts. The number of occurrences of each character must be above zero.
 -}
 data HuffmanTree = Void
                  | Leaf Int Char
@@ -99,25 +103,25 @@ huffmanTree table =
       findLeast q | PriorityQueue.isEmpty q = ((Void, 0), q)
                   | otherwise               = PriorityQueue.least q
       {- addToQueue q x@(a, b)
-         PRE:           b > 0.
-         POST:          Inserts x in queue q.
-         EXAMPLES:      addToQueue PriorityQueue.empty ('a', 2) == PriorityQueue [(Leaf 2 'a',2)]
+         PRE:       b > 0.
+         POST:      Inserts x in queue q.
+         EXAMPLES:  addToQueue PriorityQueue.empty ('a', 2) == PriorityQueue [(Leaf 2 'a',2)]
       -}
       addToQueue :: PriorityQueue HuffmanTree -> (Char, Int) -> PriorityQueue HuffmanTree
       addToQueue q (c, i) = PriorityQueue.insert q ((Leaf i c), i)
       {- mergeTree t1 t2
-         PRE:           True
-         POST:          t1 and t2 merged.
-         EXAMPLES:      mergeTree (Leaf 1 'a') (Leaf 2 'b') == Branch 3 (Leaf 1 'a') (Leaf 2 'b')
+         PRE:       True
+         POST:      t1 and t2 merged.
+         EXAMPLES:  mergeTree (Leaf 1 'a') (Leaf 2 'b') == Branch 3 (Leaf 1 'a') (Leaf 2 'b')
       -}
       mergeTree :: HuffmanTree -> HuffmanTree -> HuffmanTree
       mergeTree Void t = t
       mergeTree t Void = t
       mergeTree t1 t2  = Branch (priority t1 + priority t2) t1 t2
       {- priority t
-         PRE:           t is not an empty subtree.
-         POST:          Priority of t
-         EXAMPLES:      priority (Leaf 1 'r') == 1
+         PRE:       t is not an empty subtree.
+         POST:      Priority of t
+         EXAMPLES:  priority (Leaf 1 'r') == 1
       -}
       priority :: HuffmanTree -> Int
       priority (Leaf p _)     = p
@@ -173,7 +177,7 @@ compress s  =
         {- lookupCharacters str t
            PRE:       True.
            POST:      Encoding of s based on mapped characters in t.
-           EXAMPLES:  lookupCharacters "Hello World" (codeTable (huffmanTree (characterCounts "Hello World"))) == [False, True, True, False, True, False, True, False, True, False, True, True, False, False, False, True, False, False, False, True, True, False, True, True, True, True, True, False, True, True, True, False]
+           EXAMPLES:  lookupCharacters "Foobar" (codeTable (huffmanTree (characterCounts "Foobar"))) == [False, True, True, False, True, False, False, False, True, True, True, True, True, False]
            VARIANT:   |s|
         -}
         lookupCharacters :: String -> Table Char BitCode -> BitCode
@@ -186,7 +190,7 @@ compress s  =
    PURPOSE:   Decodes the message in bits from h.
    PRE:       bits is valid Huffman code for h.
    POST:      The decoding of bits under h.
-   EXAMPLES:  uncurry decompress (compress "Hello World") == "Hello World"
+   EXAMPLES:  uncurry decompress (compress "Foobar") == "Foobar"
  -}
 decompress :: HuffmanTree -> BitCode -> String
 decompress Void _              = "" -- fixes issue with empty strings
@@ -244,7 +248,13 @@ test6 =
       TestCase $ assertEqual ("decompress \"" ++ s ++ "\"")
         s (let (h, bits) = compress s in decompress h bits)
 
+test7 =
+    let s = "Ölands Ålar äter älgkött med skålar."
+    in
+      TestCase $ assertEqual ("decompress \"" ++ s ++ "\"")
+        s (let (h, bits) = compress s in decompress h bits)
+
 -- for running all the tests
-runtests = runTestTT $ TestList [test1, test2, test3, test4, test5, test6]
+runtests = runTestTT $ TestList [test1, test2, test3, test4, test5, test6, test7]
 
 testDecompress a = let (h, bits) = compress a in decompress h bits
