@@ -105,7 +105,7 @@ huffmanTree table =
       {- addToQueue q x@(a, b)
          PRE:       b > 0.
          POST:      Inserts x in queue q.
-         EXAMPLES:  addToQueue PriorityQueue.empty ('a', 2) == PriorityQueue [(Leaf 2 'a')] <--------Gustav ändring
+         EXAMPLES:  addToQueue PriorityQueue.empty ('a', 2) == PriorityQueue [(Leaf 2 'a', 2)] <--------Gustav ändrade tillbaka hehe
       -}
       addToQueue :: PriorityQueue HuffmanTree -> (Char, Int) -> PriorityQueue HuffmanTree
       addToQueue q (c, i) = PriorityQueue.insert q ((Leaf i c), i)
