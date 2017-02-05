@@ -88,10 +88,10 @@ decompress h@(Leaf i c) (b':b) = c:(decompress h b) --Ursprungs h
 decompress h b = fun h b ""
 	where
 		fun :: HuffmanTree -> BitCode -> String -> String
-		fun (Leaf i c) [] s = s ++ [c]
-		fun (Leaf i c) b s = fun h b (s ++ [c]) --Hela trädet
-		fun (Branch i l r) (b':b) s | b' == True = fun r b s
-					  | otherwise = fun l b s
+		fun (Leaf _ c) [] s = s ++ [c]
+		fun (Leaf _ c) b s  = fun h b (s ++ [c]) --Hela trädet
+		fun (Branch _ l r) (b':b) s | b'        = fun r b s
+					    | otherwise = fun l b s
 
 
 {-
