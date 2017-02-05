@@ -53,7 +53,7 @@ characterCounts (k:ks) =
     Table.insert table k value
 
 {- REPRESENTATION CONVENTION:
-     In the Huffman Tree Leaf c i, c represents the number of occurrences of the character represented by c. In Branch i r l, i is the combined number of character in the sub-trees r and l. Void is an empty sub-tree.
+     In the Huffman Tree Leaf i c, i represents the number of occurrences of the character represented by c. In Branch i r l, i is the combined number of character in the sub-trees r and l. Void is an empty sub-tree.
    REPRESENTATION INVARIANT:
      Sub-trees with higher character counts do not occur at a lower level of the tree than sub-tress with lower character counts. The number of occurrences of each character must be above zero.
 -}
@@ -105,7 +105,7 @@ huffmanTree table =
       {- addToQueue q x@(a, b)
          PRE:       b > 0.
          POST:      Inserts x in queue q.
-         EXAMPLES:  addToQueue PriorityQueue.empty ('a', 2) == PriorityQueue [(Leaf 2 'a',2)]
+         EXAMPLES:  addToQueue PriorityQueue.empty ('a', 2) == PriorityQueue [(Leaf 2 'a')] <--------Gustav ändring
       -}
       addToQueue :: PriorityQueue HuffmanTree -> (Char, Int) -> PriorityQueue HuffmanTree
       addToQueue q (c, i) = PriorityQueue.insert q ((Leaf i c), i)
