@@ -147,19 +147,7 @@ codeTable h = mapCharacters h [] Table.empty
   mapCharacters (Void)         _ _ = Table.empty
   mapCharacters (Leaf _ k)    [] t = Table.insert t k [False] -- Fix for single characters
   mapCharacters (Leaf _ k)     b t = Table.insert t k b
-  mapCharacters (Branch _ l r) b t =
-    mapCharacters r (addBit 1 b) (mapCharacters l (addBit 0 b) t)
-      where
-      {- addBit n l
-         PRE:       n = {1, 0}
-         POST:      l with False added to it if n == 0,
-                    otherwise l with True added to it.
-         EXAMPLES:  addBit 1 []     == [True]
-                    addBit 0 [True] == [True, False]
-      -}
-      addBit :: Int -> [Bool] -> [Bool]
-      addBit 0 b = b ++ [False]
-      addBit 1 b = b ++ [True]
+  mapCharacters (Branch _ l r) b t = mapCharacters r (b ++ [True]) (mapCharacters l (b ++ [False]) t)
 
 {- compress s
    PURPOSE:   Encodes the message in s.
@@ -196,18 +184,18 @@ decompress :: HuffmanTree -> BitCode -> String
 decompress Void _              = "" -- fixes issue with empty strings
 decompress _ []                = [] -- fixes an issue with repeated chars
 decompress h@(Leaf _ k) (b:bs) = k : (decompress h bs)
-decompress huffmanTree   bits  = traverseTree huffmanTree bits ""
+decompress huffmanTree   bits  = traverseTree huffmanTree bits
   where
-    {- traverseTree h b str
+    {- traverseTree h b
        PRE:           b is valid Huffman code for h.
-       POST:          str consisting of characters from h mapped out in b.
+       POST:          string consisting of characters from h mapped out in b.
        VARIANT:       |b|
     -}
-    traverseTree :: HuffmanTree -> BitCode -> String -> String
-    traverseTree (Leaf _ k)     []         str = str ++ [k]
-    traverseTree (Leaf _ k)     bits       str = traverseTree huffmanTree bits (str ++ [k])
-    traverseTree (Branch _ l r) (bit:bits) str | bit       = traverseTree r bits str
-                                               | otherwise = traverseTree l bits str
+    traverseTree :: HuffmanTree -> BitCode -> String
+    traverseTree (Leaf _ k)     []         = [k]
+    traverseTree (Leaf _ k)     bits       = k : (traverseTree huffmanTree bits)
+    traverseTree (Branch _ l r) (bit:bits) | bit       = traverseTree r bits
+                                           | otherwise = traverseTree l bits
 
 --------------------------------------------------------------------------------
 -- Test Cases
