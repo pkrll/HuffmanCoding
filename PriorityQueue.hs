@@ -75,7 +75,7 @@ insert (PriorityQueue q) p = PriorityQueue (ins q p)
     ins :: [(a, Int)] -> (a, Int) -> [(a, Int)]
     ins []    p = [p]
     ins (h:q) p =
-      if snd h > snd p
+      if snd p <= snd h
         then p:h:q
         else h:(ins q p)
 
