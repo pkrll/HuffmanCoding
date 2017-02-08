@@ -156,6 +156,7 @@ codeTable h = mapCharacters h [] Table.empty
    EXAMPLES:  compress "Hello World" == (Branch 11 (Branch 4 (Branch 2 (Leaf 1 'W') (Leaf 1 ' ')) (Branch 2 (Leaf 1 'e') (Leaf 1 'H'))) (Branch 7 (Leaf 3 'l') (Branch 4 (Leaf 2 'o') (Branch 2 (Leaf 1 'd') (Leaf 1 'r')))),[False,True,True,False,True,False,True,False,True,False,True,True,False,False,False,True,False,False,False,True,True,False,True,True,True,True,True,False,True,True,True,False])
  -}
 compress :: String -> (HuffmanTree, BitCode)
+
 compress [] = (Void, [])
 compress s  =
   let
