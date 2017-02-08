@@ -184,18 +184,19 @@ decompress :: HuffmanTree -> BitCode -> String
 decompress Void _              = "" -- fixes issue with empty strings
 decompress _ []                = [] -- fixes an issue with repeated chars
 decompress h@(Leaf _ k) (b:bs) = k : (decompress h bs)
-decompress huffmanTree   bits  = traverseTree huffmanTree bits
+decompress huffmanTree   bits  = traverseTree huffmanTree bits ""
   where
-    {- traverseTree h b
-       PRE:           b is valid Huffman code for h.
-       POST:          string consisting of characters from h mapped out in b.
-       VARIANT:       |b|
+    {- traverseTree h b str
+      PRE:      b is valid Huffman code for h.
+      POST:     str consisting of characters from h mapped out in b.
+      EXAMPLES: traverseTree (Branch 6 (Leaf 2 'o') (Branch 4 (Branch 2 (Leaf 1 'a') (Leaf 1 'r')) (Branch 2 (Leaf 1 'F') (Leaf 1 'b'))), [True, True, False, False, False, True, True, True, True, False, False, True, False, True]) == "Foobar"
+      VARIANT:  |b|
     -}
-    traverseTree :: HuffmanTree -> BitCode -> String
-    traverseTree (Leaf _ k)     []         = [k]
-    traverseTree (Leaf _ k)     bits       = k : (traverseTree huffmanTree bits)
-    traverseTree (Branch _ l r) (bit:bits) | bit       = traverseTree r bits
-                                           | otherwise = traverseTree l bits
+    traverseTree :: HuffmanTree -> BitCode -> String -> String
+    traverseTree (Leaf _ k)     []         str = reverse (k:str)
+    traverseTree (Leaf _ k)     bits       str = traverseTree huffmanTree bits (k:str)
+    traverseTree (Branch _ l r) (bit:bits) str | bit       = traverseTree r bits str
+                                               | otherwise = traverseTree l bits str
 
 --------------------------------------------------------------------------------
 -- Test Cases
