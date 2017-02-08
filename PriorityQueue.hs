@@ -1,3 +1,13 @@
+-------------------------------------------------------
+--  Program Design & Data Structures (Course 1DL201)
+--  Spring 2017 Home Assignment 3: Huffman Coding
+--
+--  Authors:
+--    Ardalan Samimi Sadeh (DV1 C)
+--    Gustav Lindqvist     (IT1 B)
+--  Date:
+--    February 3, 2017
+-------------------------------------------------------
 -- DO NOT MODIFY THE FOLLOWING LINES
 
 module PriorityQueue(PriorityQueue, empty, isEmpty, insert, least) where
@@ -38,39 +48,35 @@ least :: PriorityQueue a -> ((a, Int), PriorityQueue a)
 
 -- END OF DO NOT MODIFY ZONE
 
-
 --------------------------------------------------------------------------------
 -- implementation
 --------------------------------------------------------------------------------
 
--- the type of priority queues with elements of type a (and priorities
--- of type Int)
--- modify and add comments as needed
-
-
-{- REPRESENTATION CONVENTION: A priority queue with elements of type a and priorities of type Int.
-   REPRESENTATION INVARIANT: True
- -}
-data PriorityQueue a = PriorityQueue [(a,Int)] deriving Show
+{- REPRESENTATION CONVENTION:
+     A priority queue with elements of type a and priorities of type Int.
+   REPRESENTATION INVARIANT:
+     True.
+-}
+data PriorityQueue a = PriorityQueue [(a, Int)] deriving (Show)
 
 empty = PriorityQueue []
 
-isEmpty (PriorityQueue []) = True
-isEmpty _ = False
+isEmpty (PriorityQueue q) = null q
 
---Creates an ordered priority queue
---Variant: length a
-insert (PriorityQueue a) b = PriorityQueue (insert' a b)
-                             where
-                             insert' :: [(a,Int)] -> (a, Int) -> [(a,Int)]
-                             insert' [] b = [b]
-                             insert' (q':q) (x,p) | p <= snd q' = (x,p):q':q
-                                                  | otherwise = q':(insert' q (x,p))
+-- It will return an ordered PriorityQueue
+insert (PriorityQueue q) p = PriorityQueue (ins q p)
+  where
+    {- ins a b@(c, d)
+       PRE:       True
+       POST:      a with element b inserted, in ascending order by d.
+       EXAMPLES:  ins [] ('A', 2) == [('a', 2)]
+       VARIANT:   |a|
+    -}
+    ins :: [(a, Int)] -> (a, Int) -> [(a, Int)]
+    ins []    p = [p]
+    ins (h:q) p =
+      if snd p <= snd h
+        then p:h:q
+        else h:(ins q p)
 
-least (PriorityQueue (a:q)) = (a, PriorityQueue q)
-
-
-
-
-
-
+least (PriorityQueue (h:q)) = (h, PriorityQueue q)

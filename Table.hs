@@ -14,7 +14,6 @@ iterate :: Table k v -> (b -> (k, v) -> b) -> b -> b
 keys :: Table k v -> (b -> k -> b) -> b -> b
 values :: Table k v -> (b -> v -> b) -> b -> b
 
-
 -- implementation
 
 newtype Table k v = T [(k, v)] deriving (Show)
