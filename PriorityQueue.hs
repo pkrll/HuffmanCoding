@@ -53,9 +53,9 @@ least :: PriorityQueue a -> ((a, Int), PriorityQueue a)
 --------------------------------------------------------------------------------
 
 {- REPRESENTATION CONVENTION:
-     A priority queue with elements of type a and priorities of type Int.
+     A priority queue consists of a list of pairs where the second element is the priority of the element.
    REPRESENTATION INVARIANT:
-     True.
+     An element with higher priority is always behind one with a lower priority in the list.
 -}
 data PriorityQueue a = PriorityQueue [(a, Int)] deriving (Show)
 

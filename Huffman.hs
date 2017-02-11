@@ -6,7 +6,7 @@
 --    Ardalan Samimi Sadeh (DV1 C)
 --    Gustav Lindqvist     (IT1 B)
 --  Date:
---    February 3, 2017
+--    February 8, 2017
 -------------------------------------------------------
 -- DO NOT MODIFY THE FOLLOWING LINES
 
@@ -14,8 +14,7 @@ module Huffman(HuffmanTree, characterCounts, huffmanTree, codeTable, compress, d
 
 import Table
 import PriorityQueue
-import Data.Maybe   -- Added by student
-import Debug.Trace  -- Added by student
+import Data.Maybe  -- Added by student
 import Test.HUnit  -- if this causes an error, type 'cabal install HUnit' at the command line
 
 {- REPRESENTATION CONVENTION:
@@ -29,12 +28,6 @@ type BitCode = [Bool]
 -- END OF DO NOT MODIFY ZONE
 
 --------------------------------------------------------------------------------
-{-# ANN module "HLint: ignore Use mappend" #-}
-
--- TODO:
---  * Think of more edge cases / grading cases...
---  * What should a code table with repeated characters look like?
---  * How should a priority queue handle duplicates?
 
 {- characterCounts s
    PURPOSE:   Counts the number of occurrences of each character in s
@@ -55,7 +48,7 @@ characterCounts (k:ks) =
 {- REPRESENTATION CONVENTION:
      In the Huffman Tree Leaf i c, i represents the number of occurrences of the character represented by c. In Branch i r l, i is the combined number of character in the sub-trees r and l. Void is an empty sub-tree.
    REPRESENTATION INVARIANT:
-     Sub-trees with higher character counts do not occur at a lower level of the tree than sub-tress with lower character counts. The number of occurrences of each character must be above zero.
+     Sub-trees with higher character counts do not occur at a lower level of the tree than sub-tress with lower character counts. The number of occurrences of a character must be above zero.
 -}
 data HuffmanTree = Void
                  | Leaf Int Char
@@ -71,8 +64,6 @@ data HuffmanTree = Void
 huffmanTree :: Table Char Int -> HuffmanTree
 huffmanTree table =
   let
-    -- TODO: Empty table crashes the function. findLeast will handle that,
-    -- but maybe unnecessary. If case better?
     queue = findLeast (Table.iterate table addToQueue PriorityQueue.empty)
   in
     -- Using uncurry here only because pattern matching
@@ -80,7 +71,7 @@ huffmanTree table =
     uncurry (buildHuffmanTree) queue where
       {- buildHuffmanTree t q
          PRE:       True.
-         POST:      A Huffman tree based on the elements in q.
+         POST:      A single Huffman tree based on the elements in q.
          EXAMPLES:  buildHuffmanTree (Leaf 1 'C',1) (PriorityQueue [(Leaf 1 'B',1),(Leaf 1 'A',1)]) == Branch 3 (Leaf 1 'A') (Branch 2 (Leaf 1 'C') (Leaf 1 'B'))
          VARIANT:   |q|
       -}
@@ -153,10 +144,9 @@ codeTable h = mapCharacters h [] Table.empty
    PURPOSE:   Encodes the message in s.
    PRE:       True.
    POST:      A Huffman tree based on s, the Huffman coding of s under this tree.
-   EXAMPLES:  compress "Hello World" == (Branch 11 (Branch 4 (Branch 2 (Leaf 1 'W') (Leaf 1 ' ')) (Branch 2 (Leaf 1 'e') (Leaf 1 'H'))) (Branch 7 (Leaf 3 'l') (Branch 4 (Leaf 2 'o') (Branch 2 (Leaf 1 'd') (Leaf 1 'r')))),[False,True,True,False,True,False,True,False,True,False,True,True,False,False,False,True,False,False,False,True,True,False,True,True,True,True,True,False,True,True,True,False])
+   EXAMPLES:  compress "Hello World" == (Branch 11 (Branch 4 (Branch 2 (Leaf 1 'W') (Leaf 1 ' ')) (Branch 2 (Leaf 1 'e') (Leaf 1 'H'))) (Branch 7 (Leaf 3 'l') (Branch 4 (Leaf 2 'o') (Branch 2 (Leaf 1 'd') (Leaf 1 'r')))), [False, True, True, False, True, False, True, False, True, False, True, True, False, False, False, True, False, False, False, True, True, False, True, True, True, True, True, False, True, True, True, False])
  -}
 compress :: String -> (HuffmanTree, BitCode)
-
 compress [] = (Void, [])
 compress s  =
   let
