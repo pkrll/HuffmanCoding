@@ -5,8 +5,6 @@
 --  Authors:
 --    Ardalan Samimi Sadeh (DV1 C)
 --    Gustav Lindqvist     (IT1 B)
---  Date:
---    February 8, 2017
 -------------------------------------------------------
 -- DO NOT MODIFY THE FOLLOWING LINES
 
@@ -35,6 +33,7 @@ type BitCode = [Bool]
    POST:      A table that maps each character that occurs in s to the number of
               times the character occurs in s
    EXAMPLES:  characterCounts "Foobar" == T [('r',1),('a',1),('b',1),('o', 2),('F',1)]
+              characterCounts ""       == T []
  -}
 characterCounts :: String -> Table Char Int
 characterCounts []     = Table.empty
@@ -58,8 +57,8 @@ data HuffmanTree = Void
    PURPOSE:   Creates a Huffman tree based on character counts in t.
    PRE:       t maps each key to a positive value.
    POST:      A Huffman tree based on the character counts in t.
-   EXAMPLES:  huffmanTree (characterCounts "Foobar") == Branch 6 (Branch 2 (Leaf 1 'b') (Leaf 1 'F')) (Branch 4 (Leaf 2 'o') (Branch 2 (Leaf 1 'r') (Leaf 1 'a')))
-              huffmanTree (characterCounts "H") == Leaf 1 'H'
+   EXAMPLES:  huffmanTree (characterCounts "Foobar") == Branch 6 (Leaf 2 'o') (Branch 4 (Branch 2 (Leaf 1 'a') (Leaf 1 'r')) (Branch 2 (Leaf 1 'F') (Leaf 1 'b')))
+              huffmanTree (characterCounts "HHH") == Leaf 3 'H'
  -}
 huffmanTree :: Table Char Int -> HuffmanTree
 huffmanTree table =
@@ -122,7 +121,8 @@ huffmanTree table =
    PURPOSE:   Creates a code table with each character in h mapped to its Huffman code.
    PRE:       True
    POST:      A table that maps each character in h to its Huffman code.
-   EXAMPLES:  codeTable (huffmanTree (characterCounts "Hello World")) == T [('W', [False,False,False]), (' ', [False,False,True]), ('e', [False,True,False]), ('H', [False,True,True]), ('l', [True,False]), ('o', [True,True,False]), ('d', [True,True,True,False]), ('r', [True,True,True,True])]
+   EXAMPLES:  codeTable (huffmanTree (characterCounts "Foobar")) == T [('o', [False]), ('a', [True, False, False]), ('r', [True, False, True]), ('F', [True, True, False]), ('b', [True, True, True])]
+              codeTable (huffmanTree (characterCounts "HHH"))     == T [('H',[False])]
  -}
 codeTable :: HuffmanTree -> Table Char BitCode
 codeTable h = mapCharacters h [] Table.empty
@@ -144,7 +144,9 @@ codeTable h = mapCharacters h [] Table.empty
    PURPOSE:   Encodes the message in s.
    PRE:       True.
    POST:      A Huffman tree based on s, the Huffman coding of s under this tree.
-   EXAMPLES:  compress "Hello World" == (Branch 11 (Branch 4 (Branch 2 (Leaf 1 'W') (Leaf 1 ' ')) (Branch 2 (Leaf 1 'e') (Leaf 1 'H'))) (Branch 7 (Leaf 3 'l') (Branch 4 (Leaf 2 'o') (Branch 2 (Leaf 1 'd') (Leaf 1 'r')))), [False, True, True, False, True, False, True, False, True, False, True, True, False, False, False, True, False, False, False, True, True, False, True, True, True, True, True, False, True, True, True, False])
+   EXAMPLES:  compress "foobar" == (Branch 6 (Leaf 2 'o') (Branch 4 (Branch 2 (Leaf 1 'a') (Leaf 1 'r')) (Branch 2 (Leaf 1 'f') (Leaf 1 'b'))), [True, True, False, False, False, True, True, True, True, False, False, True, False, True])
+              compress ""       == (Void,[])
+              compress "xxx"    == (Leaf 3 'x', [False, False, False])
  -}
 compress :: String -> (HuffmanTree, BitCode)
 compress [] = (Void, [])
@@ -156,7 +158,7 @@ compress s  =
         {- lookupCharacters str t
            PRE:       True.
            POST:      Encoding of s based on mapped characters in t.
-           EXAMPLES:  lookupCharacters "Foobar" (codeTable (huffmanTree (characterCounts "Foobar"))) == [False, True, True, False, True, False, False, False, True, True, True, True, True, False]
+           EXAMPLES:  lookupCharacters "Foobar" (codeTable (huffmanTree (characterCounts "Foobar"))) == [True, True, False, False, False, True, True, True, True, False, False, True, False, True]
            VARIANT:   |s|
         -}
         lookupCharacters :: String -> Table Char BitCode -> BitCode
@@ -180,7 +182,7 @@ decompress huffmanTree   bits  = traverseTree huffmanTree bits ""
     {- traverseTree h b str
       PRE:      b is valid Huffman code for h.
       POST:     str consisting of characters from h mapped out in b.
-      EXAMPLES: traverseTree (Branch 6 (Leaf 2 'o') (Branch 4 (Branch 2 (Leaf 1 'a') (Leaf 1 'r')) (Branch 2 (Leaf 1 'F') (Leaf 1 'b'))), [True, True, False, False, False, True, True, True, True, False, False, True, False, True]) == "Foobar"
+      EXAMPLES: traverseTree (Branch 6 (Leaf 2 'o') (Branch 4 (Branch 2 (Leaf 1 'a') (Leaf 1 'r')) (Branch 2 (Leaf 1 'f') (Leaf 1 'b'))), [True, True, False, False, False, True, True, True, True, False, False, True, False, True) == "Foobar"
       VARIANT:  |b|
     -}
     traverseTree :: HuffmanTree -> BitCode -> String -> String
@@ -236,5 +238,3 @@ test7 =
 
 -- for running all the tests
 runtests = runTestTT $ TestList [test1, test2, test3, test4, test5, test6, test7]
-
-testDecompress a = let (h, bits) = compress a in decompress h bits

@@ -5,8 +5,6 @@
 --  Authors:
 --    Ardalan Samimi Sadeh (DV1 C)
 --    Gustav Lindqvist     (IT1 B)
---  Date:
---    February 3, 2017
 -------------------------------------------------------
 -- DO NOT MODIFY THE FOLLOWING LINES
 
