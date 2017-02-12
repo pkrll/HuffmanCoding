@@ -32,8 +32,8 @@ type BitCode = [Bool]
    PRE:       True
    POST:      A table that maps each character that occurs in s to the number of
               times the character occurs in s
-   EXAMPLES:  characterCounts "Foobar" == T [('r',1),('a',1),('b',1),('o', 2),('F',1)]
-              characterCounts ""       == T []
+   EXAMPLES:  characterCounts "Foobar" == A table that maps characters 'F' to 1, 'o' to 2, 'b' to 1, 'a' to 1 and 'r' to 1 (and that contains no other keys).
+              characterCounts "" == Table.empty
  -}
 characterCounts :: String -> Table Char Int
 characterCounts []     = Table.empty
@@ -121,8 +121,7 @@ huffmanTree table =
    PURPOSE:   Creates a code table with each character in h mapped to its Huffman code.
    PRE:       True
    POST:      A table that maps each character in h to its Huffman code.
-   EXAMPLES:  codeTable (huffmanTree (characterCounts "Foobar")) == T [('o', [False]), ('a', [True, False, False]), ('r', [True, False, True]), ('F', [True, True, False]), ('b', [True, True, True])]
-              codeTable (huffmanTree (characterCounts "HHH"))     == T [('H',[False])]
+   EXAMPLES:  codeTable (huffmanTree (characterCounts "Foo")) == A table that maps character 'F' to [False], 'o' to [True] (and that contains no other keys).
  -}
 codeTable :: HuffmanTree -> Table Char BitCode
 codeTable h = mapCharacters h [] Table.empty
@@ -131,7 +130,7 @@ codeTable h = mapCharacters h [] Table.empty
      PURPOSE:  Traverses the entire tree h and maps where each character is.
      PRE:      b and t are empty
      POST:     t with each character in h mapped to its Huffman code, accumulated in b
-     EXAMPLES: mapCharacters (Branch 3 (Leaf 1 'A') (Branch 2 (Leaf 1 'C') (Leaf 1 'B'))) [] Table.empty == T [('A', [False]),('C', [True,False]),('B', [True,True])]
+     EXAMPLES: mapCharacters (Branch 3 (Leaf 1 'A') (Branch 2 (Leaf 1 'C') (Leaf 1 'B'))) [] Table.empty == A table that maps 'A' to [False], 'C' to [True, False], 'B' to [True, True] (and that contains no other keys).
      VARIANT:  |h|
   -}
   mapCharacters :: HuffmanTree -> BitCode -> Table Char BitCode -> Table Char BitCode
